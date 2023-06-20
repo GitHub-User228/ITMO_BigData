@@ -8,6 +8,7 @@ from src.preprocessors import init_preprocess
 from src.aggregators import count_rows
 
 
+
 class BaseSplitter:
     """
     This class can be used to split input Basis DataFrame by selected columns.
@@ -593,3 +594,29 @@ class NewDataMergerer:
                                                   col=key)
 
         return data_new, fields_new
+
+
+
+def reform_grouped(df, top, metric, groups, vmax=None):
+    """
+    TODO
+    """
+    if metric == 'tf':
+        df2 = df.iloc[groups][['top_tokens_tf']].rename(columns={'top_tokens_tf': 'tf'}).copy()
+    if metric == 'tfidf':
+        df2 = df.iloc[groups][['top_tokens_tfidf']].rename(columns={'top_tokens_tfidf': 'tfidf'}).copy()
+    freqs = df.iloc[groups][[metric]].copy()
+    freqs[metric] = freqs[metric].apply(lambda x: x[:top])
+    freqs = pd.DataFrame(data=np.array([vals[0] for vals in freqs.values]).T,
+                         index=list(range(1, top+1)), columns=list(freqs.index))
+    freqs = freqs/freqs.sum(axis=0)
+    if vmax is None:
+        vmax = (math.ceil(freqs.values.max()*10)/10)
+    vmin = (int(freqs.values.max()*10)/10)
+    freqs = freqs/vmax
+    vmax = vmax*100
+    df2[metric] = df2[metric].apply(lambda x: x[:top])
+    df2 = pd.DataFrame(data=np.array([vals[0] for vals in df2.values]).T,
+                       index=list(range(1, top+1)), columns=list(df2.index))
+
+    return df2, freqs, vmax, vmin

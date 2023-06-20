@@ -32,6 +32,51 @@ def custom_line_plots(ids_start, ids_stop, groups, data, x, y, hue,
 
 
 
+def get_colorbar(vmax, vmin=0, orientation='vertical'):
+    figsize=(10, 1)
+    if orientation == 'vertical':
+        figsize=(1, 6)
+    with rc_context({'font.size': 15}):
+        fig, ax = plt.subplots(figsize=figsize)
+        if orientation == 'vertical':
+            fig.subplots_adjust(left=0.5)
+        else:
+            fig.subplots_adjust(bottom=0.5)
+        cmap = mpl.cm.jet
+        norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
+        fig.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=cmap),
+                     cax=ax, orientation=orientation, label='%')
+
+def table_plot(df, freqs, H=1, W=1, header_frac=0.1, header_fs=18, row_fs=15,
+               headers=None):
+    """
+    TODO
+    """
+    with rc_context({'font.serif': 'Computer Modern Roman'}):
+        fig, ax = plt.subplots()
+        row_frac = (1-header_frac)/len(df.values)
+        ax.set_axis_off()
+        if headers is None:
+            headers = df.columns
+        table = ax.table(
+            colLabels = headers,
+            cellText = df.values,
+            cellColours = plt.get_cmap('jet')(freqs.values),
+            colColours = ['#d3d3d3']*len(df.columns),
+            cellLoc ='center',
+            loc ='upper left',)
+        for r in range(0, len(df.columns)):
+            table[0, r].set_height(H*header_frac)
+            table[0, r].set_width(W)
+            table[0, r].set_fontsize(header_fs)
+        for r in range(0, len(df.columns)):
+            for k in range(1, len(df.values)+1):
+                table[k, r].set_height(H*row_frac)
+                table[k, r].set_width(W)
+                table[k, r].set_fontsize(row_fs)
+
+
+
 def custom_bar_plot(data, x, y, hue, fs=18, k=1, aspect_ratio=0.5, x_rotation=45,
                     x_vals=None, show_values=False, ylim=(0, 100)):
     """
